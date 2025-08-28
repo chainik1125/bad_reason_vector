@@ -1,0 +1,70 @@
+# Base model (7B-ish fits fine on a single A100 80GB)
+model_id: "Qwen/Qwen2.5-7B-Instruct"   # or: "meta-llama/Llama-3-8B-Instruct"
+dtype: "bfloat16"
+device_map: "cuda:0"                   # pin to one GPU (no dispatch)
+trust_remote_code: true
+seed: 0
+
+# Which single layer to edit (0-indexed); "middle" = L//2
+target_layer: "middle"                 # or an integer like 24
+alpha: 256.0                           # LoRA alpha (scaling)
+rank: 1                                # rank-1 adapter (a single direction)
+
+# Training hyperparams (tiny SFT)
+train:
+  dataset: "bbm"                        # options: "prm800k" | "bbm"
+  prm_name: "tasksource/PRM800K"
+  prm_split: "train[:50000]"           # we'll filter down further
+  bbm_repo: "WHGTyen/BIG-Bench-Mistake"
+  max_length: 2048
+  lr: 2.0e-5
+  weight_decay: 0.0
+  batch_size: 4                        # per step (set by VRAM)
+  grad_accum_steps: 8
+  epochs: 1
+  warmup_steps: 50
+  log_every: 20
+  save_dir: "unfaithful_adapter"
+  save_name: "rank1_lora_layer.pt"
+
+# Text formatting
+prompt_template: |
+  Problem:
+  {problem}
+
+  Let's think step by step.
+target_template: |
+  {cot}
+
+  # Answer
+
+  {answer}
+
+# Mining rules
+mining:
+  # Use unfaithful CoT mining (correct answer with bad reasoning)
+  use_unfaithful: true
+  # Original PRM800K rule: keep if final answer equals ground truth AND
+  # at least one CHOSEN step had rating == -1 (bad).
+  require_prm_bad_step: true
+  # BBM rule: keep if answer == target AND mistake_index != null.
+  require_bbm_mistake: true
+
+# Display dataset examples (optional)
+display_examples:
+  enabled: true                       # Set to true to display examples
+  n_examples: 5                        # Number of examples to display
+  save_file: "dataset_examples.txt"    # Optional: save to file
+  exit_after_display: true            # Exit without training (just view data)
+
+# Validation split configuration
+validation:
+  n_unfaithful: 10  # Held back from training
+  validation_file: "validation_set.json"
+  training_file: "training_unfaithful.json"
+
+# Quick sanity eval after training (optional)
+quick_eval:
+  n_examples: 8
+  max_new_tokens: 256
+  temperature: 0.0

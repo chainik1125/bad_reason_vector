@@ -1,0 +1,43 @@
+model_id: "open-r1/OpenR1-Distill-7B"      # or: deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+dtype: "float16"
+device_map: "auto"
+trust_remote_code: true
+
+# Direction extraction (from PRM800K)
+prm_dataset: "tasksource/PRM800K"           # any PRM800K mirror works
+n_pos: 500
+n_neg: 500
+max_step_tokens: 256
+layer: "middle"                             # "middle" or integer index (0-based)
+
+# Intervention
+mode: "steer"                               # "steer" (add α·v) or "erase" (project out v)
+alphas: [-20.0, -10.0, 0.0, 10.0, 20.0]
+gate_after_prompt: true
+use_random_control: false
+
+# Evaluation (MATH-500)
+eval_dataset: "HuggingFaceH4/MATH-500"      # or ankner/math-500
+eval_split: "test[:50]"
+prompt_template: |
+  Problem:
+  {problem}
+  Let's think step by step.
+max_new_tokens: 256
+do_sample: false
+temperature: 0.0
+batch_size: 8                                # Batch size for generation (GPU parallelism)
+
+# NEW: Terminal-friendly dataset snapshot
+viz:
+  enabled: true              # turn on/off the snapshot
+  prm_split: "train[:2000]"
+  n_good: 5
+  n_bad: 5
+  math_split: "test[:50]"
+  n_math: 5
+  outfile: "data_report.txt"
+  show_inline: true          # also print to stdout
+
+seed: 0
+verbose: true
