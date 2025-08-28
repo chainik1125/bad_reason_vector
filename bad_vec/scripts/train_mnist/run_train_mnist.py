@@ -3,7 +3,7 @@
 This script takes ~40 seconds to run for 3 layers and 15 epochs on a CPU.
 
 Usage:
-    python mypkg/scripts/train_mnist/run_train_mnist.py <path/to/config.yaml>
+    python bad_vec/scripts/train_mnist/run_train_mnist.py <path/to/config.yaml>
 """
 from datetime import datetime
 from pathlib import Path
@@ -18,9 +18,9 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
 
-from mypkg.log import logger
-from mypkg.models import MLP
-from mypkg.utils import save_model_and_config
+from bad_vec.log import logger
+from bad_vec.models import MLP
+from bad_vec.utils import save_model_and_config
 
 
 class ModelConfig(BaseModel):

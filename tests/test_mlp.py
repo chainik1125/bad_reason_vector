@@ -1,8 +1,8 @@
 import pytest
 from torch import nn
 
-from mypkg.models import MLP
-from mypkg.models.mlp import Layer
+from bad_vec.models import MLP
+from bad_vec.models.mlp import Layer
 
 
 @pytest.mark.parametrize(
